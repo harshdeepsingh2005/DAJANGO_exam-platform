@@ -3,13 +3,17 @@
 {% block title %}Start {{ exam.title }}{% endblock %}
 
 {% block content %}
+<div class="exam-header text-center mb-4 fade-in-up">
+    <div class="container">
+        <h1 class="h3 mb-1"><i class="bi bi-exclamation-triangle"></i> Ready to start this exam?</h1>
+        <p class="text-light mb-0 small">A quick confirmation before we launch your timer.</p>
+    </div>
+</div>
+
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header bg-warning text-dark">
-                    <h3 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Ready to Start?</h3>
-                </div>
+        <div class="col-lg-8 fade-in-up delay-1">
+            <div class="card exam-card">
                 <div class="card-body text-center">
                     <h4>{{ exam.title }}</h4>
                     

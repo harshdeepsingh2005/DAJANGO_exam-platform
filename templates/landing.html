@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}NovaExam Portal{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row align-items-center mb-5 fade-in-up">
+    <div class="col-md-6 mb-4 mb-md-0">
+      <div class="landing-hero-badge mb-2">
+        <i class="bi bi-stars"></i>
+        <span>Fast, secure and exam-ready</span>
+      </div>
+      <h1 class="display-5 fw-bold mb-3 landing-hero-title">NovaExam Portal</h1>
+      <p class="lead text-muted mb-4">
+        A modern online examination platform with role-based dashboards for
+        students and administrators.
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'accounts:login' %}" class="btn btn-primary">
+          Login
+        </a>
+        <a href="{% url 'accounts:register' %}" class="btn btn-outline-primary">
+          Register
+        </a>
+        {% if user.is_authenticated %}
+          {% if user.is_staff %}
+            <a href="{% url 'admin-panel:dashboard' %}" class="btn btn-soft-primary">
+              Get Started as Admin
+            </a>
+          {% else %}
+            <a href="{% url 'student:dashboard' %}" class="btn btn-soft-primary">
+              Get Started as Student
+            </a>
+          {% endif %}
+        {% else %}
+          <a href="{% url 'accounts:register' %}" class="btn btn-soft-primary">
+            Get Started
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="row g-3">
+        <div class="col-12 fade-in-up delay-1">
+          <div class="card exam-card h-100">
+            <div class="card-body">
+              <h5 class="card-title mb-2">How It Works</h5>
+              <ul class="mb-0 text-muted small">
+                <li>Students sign up and take timed MCQ exams.</li>
+                <li>Answers auto-save and exams auto-submit on timeout.</li>
+                <li>Admins create exams, manage questions, and review analytics.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 fade-in-up delay-2">
+          <div class="card h-100">
+            <div class="card-body">
+              <h6 class="card-subtitle mb-2 text-muted">For Students</h6>
+              <ul class="small mb-0">
+                <li>Dashboard with available & in-progress exams.</li>
+                <li>Clean exam-taking interface with timer.</li>
+                <li>Instant, detailed results and explanations.</li>
+              </ul>
+              <a href="{% url 'student:dashboard' %}" class="stretched-link"></a>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 fade-in-up delay-3">
+          <div class="card h-100">
+            <div class="card-body">
+              <h6 class="card-subtitle mb-2 text-muted">For Admins</h6>
+              <ul class="small mb-0">
+                <li>Custom admin dashboard with quick actions.</li>
+                <li>Create exams, questions, and categories.</li>
+                <li>Track attempts, scores, and performance analytics.</li>
+              </ul>
+              <a href="{% url 'admin-panel:dashboard' %}" class="stretched-link"></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <h4 class="mb-3">Student Journey</h4>
+      <ol class="small text-muted mb-0">
+        <li>Register or log in.</li>
+        <li>Pick an available exam from the dashboard.</li>
+        <li>Start the exam and answer questions with real-time timer.</li>
+        <li>Review answers, submit, and view detailed results.</li>
+      </ol>
+    </div>
+    <div class="col-md-6">
+      <h4 class="mb-3">Admin Journey</h4>
+      <ol class="small text-muted mb-0">
+        <li>Log in as admin.</li>
+        <li>Create and publish exams from the Admin Panel.</li>
+        <li>Monitor attempts and exam statistics.</li>
+        <li>Iterate on questions and difficulty using analytics.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+{% endblock %}

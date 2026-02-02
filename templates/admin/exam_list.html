@@ -10,6 +10,21 @@
             <i class="bi bi-plus-circle"></i> Create New Exam
         </a>
     </div>
+
+    {% if categories %}
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-md-4">
+                <select name="category" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if selected_category_id|default:'' == cat.id|stringformat:"s" %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    {% endif %}
     
     {% if exams %}
         <div class="row">
@@ -28,6 +43,7 @@
                             <p class="card-text small">{{ exam.description|truncatewords:15 }}</p>
                             
                             <div class="small text-muted mb-3">
+                                <div><i class="bi bi-tag"></i> {{ exam.category.name|default:"Uncategorized" }}</div>
                                 <div><i class="bi bi-clock"></i> {{ exam.duration_minutes }} minutes</div>
                                 <div><i class="bi bi-question-circle"></i> {{ exam.total_questions }} questions</div>
                                 <div><i class="bi bi-calendar"></i> {{ exam.start_time|date:"M j, Y" }}</div>
@@ -40,6 +56,10 @@
                                 
                                 <a href="{% url 'admin-panel:attempt_list' exam.id %}" class="btn btn-info btn-sm">
                                     <i class="bi bi-people"></i> View Attempts ({{ exam.attempts.count }})
+                                </a>
+                                
+                                <a href="{% url 'admin-panel:exam_stats' exam.id %}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-graph-up"></i> View Analytics
                                 </a>
                                 
                                 <div class="btn-group">

@@ -3,18 +3,32 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import json
 
-from .models import Exam, Question, Choice
+from .models import Exam, Question, Choice, Category
+from .email_utils import send_exam_completed_email
 from attempts.models import Attempt, Answer
+from django.db.models import Sum, Count, F
+
+
+def landing(request):
+    """Public landing page with role-based CTAs.
+
+    - Not authenticated: hero + Login / Register / Get Started→Register
+    - Authenticated student: hero + Get Started→Student dashboard
+    - Authenticated admin/staff: hero + Get Started→Admin panel
+    """
+    return render(request, 'landing.html')
 
 
 @login_required
 def student_dashboard(request):
     """Student dashboard showing available exams"""
     exams = Exam.objects.filter(is_published=True).order_by('-created_at')
+    category_id = request.GET.get('category')
+    if category_id:
+        exams = exams.filter(category_id=category_id)
     exam_statuses = []
     
     for exam in exams:
@@ -27,6 +41,7 @@ def student_dashboard(request):
                 attempt.is_submitted = True
                 attempt.end_time = timezone.now()
                 attempt.calculate_score()
+                send_exam_completed_email(attempt)
                 status = 'Completed'
             else:
                 status = 'In Progress'
@@ -46,8 +61,93 @@ def student_dashboard(request):
         if 'attempt' in locals():
             del attempt
     
+    recent_attempts = Attempt.objects.filter(student=request.user).select_related('exam').order_by('-end_time', '-start_time')[:5]
+    categories = Category.objects.all()
+
     return render(request, 'exams/student_dashboard.html', {
-        'exam_statuses': exam_statuses
+        'exam_statuses': exam_statuses,
+        'recent_attempts': recent_attempts,
+        'categories': categories,
+        'selected_category_id': category_id,
+    })
+
+
+@login_required
+def student_profile(request):
+    """Student profile with basic info and exam history"""
+    attempts = Attempt.objects.filter(student=request.user).select_related('exam').order_by('-end_time', '-start_time')
+
+    return render(request, 'exams/profile.html', {
+        'attempts': attempts,
+    })
+
+
+@login_required
+def global_leaderboard(request):
+    """Global leaderboard across all submitted attempts.
+
+    Ranks students by total score across all exams, then by average percentage.
+    """
+
+    submitted = Attempt.objects.filter(is_submitted=True).select_related('student', 'exam')
+
+    leaderboard = (
+        submitted.values('student_id', 'student__username', 'student__first_name', 'student__last_name')
+        .annotate(
+            exams_taken=Count('id'),
+            total_score=Sum('score'),
+        )
+        .order_by('-total_score', 'student__username')[:50]
+    )
+
+    # Attach a simple display name
+    entries = []
+    for rank, row in enumerate(leaderboard, start=1):
+        full_name = (row.get('student__first_name') or '').strip()
+        if row.get('student__last_name'):
+            full_name = (full_name + ' ' + row.get('student__last_name')).strip()
+        display_name = full_name or row.get('student__username')
+        entries.append({
+            'rank': rank,
+            'display_name': display_name,
+            'exams_taken': row['exams_taken'],
+            'total_score': row['total_score'],
+        })
+
+    return render(request, 'exams/global_leaderboard.html', {
+        'entries': entries,
+    })
+
+
+@login_required
+def exam_leaderboard(request, exam_id):
+    """Leaderboard for a specific exam (submitted attempts only)."""
+
+    exam = get_object_or_404(Exam, id=exam_id)
+
+    attempts = (
+        Attempt.objects.filter(exam=exam, is_submitted=True)
+        .select_related('student')
+        .order_by('-score', 'student__username')[:50]
+    )
+
+    total_marks = exam.total_marks() or 1
+    rows = []
+    for rank, attempt in enumerate(attempts, start=1):
+        percentage = round((attempt.score / total_marks) * 100, 2)
+        full_name = attempt.student.get_full_name() or attempt.student.username
+        rows.append({
+            'rank': rank,
+            'student': attempt.student,
+            'display_name': full_name,
+            'score': attempt.score,
+            'percentage': percentage,
+            'end_time': attempt.end_time,
+        })
+
+    return render(request, 'exams/exam_leaderboard.html', {
+        'exam': exam,
+        'rows': rows,
     })
 
 
@@ -66,6 +166,7 @@ def exam_detail(request, exam_id):
             attempt.is_submitted = True
             attempt.end_time = timezone.now()
             attempt.calculate_score()
+            send_exam_completed_email(attempt)
             return redirect('results:result_detail', attempt_id=attempt.id)
         else:
             # Continue existing attempt
@@ -143,6 +244,7 @@ def take_exam(request, exam_id):
         attempt.is_submitted = True
         attempt.end_time = timezone.now()
         attempt.calculate_score()
+        send_exam_completed_email(attempt)
         messages.info(request, 'Time is up! Your exam has been auto-submitted.')
         return redirect('results:result_detail', attempt_id=attempt.id)
     
@@ -177,53 +279,99 @@ def take_exam(request, exam_id):
     return render(request, 'exams/take_exam.html', context)
 
 
-@csrf_exempt
+@login_required
+def review_exam(request, exam_id):
+    """Review all answers before final submission"""
+    exam = get_object_or_404(Exam, id=exam_id, is_published=True)
+
+    try:
+        attempt = Attempt.objects.get(student=request.user, exam=exam)
+    except Attempt.DoesNotExist:
+        messages.error(request, 'No active attempt found. Please start the exam first.')
+        return redirect('student:exam_detail', exam_id=exam.id)
+
+    if attempt.is_submitted:
+        return redirect('results:result_detail', attempt_id=attempt.id)
+
+    questions = list(exam.questions.all())
+    # Map question -> selected choice
+    answers_by_qid = {a.question_id: a.selected_choice for a in attempt.answers.select_related('selected_choice', 'question')}
+
+    questions_with_answers = [
+        {
+            'question': q,
+            'selected_choice': answers_by_qid.get(q.id),
+        }
+        for q in questions
+    ]
+
+    return render(request, 'exams/review_exam.html', {
+        'exam': exam,
+        'attempt': attempt,
+        'questions_with_answers': questions_with_answers,
+    })
+
+
 @require_POST
 @login_required
-def submit_exam(request, exam_id):
-    """Submit the exam or save answer via AJAX"""
+def save_answer(request, exam_id):
+    """Save a single answer via AJAX during an active attempt"""
     exam = get_object_or_404(Exam, id=exam_id, is_published=True)
-    
+
     try:
         attempt = Attempt.objects.get(student=request.user, exam=exam)
     except Attempt.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'No active attempt found'})
-    
+
     if attempt.is_submitted:
         return JsonResponse({'success': False, 'error': 'Exam already submitted'})
-    
-    # Handle AJAX answer saving
-    if request.headers.get('Content-Type') == 'application/json':
-        try:
-            data = json.loads(request.body)
-            question_id = data.get('question_id')
-            choice_id = data.get('choice_id')
-            
-            question = get_object_or_404(Question, id=question_id, exam=exam)
-            choice = get_object_or_404(Choice, id=choice_id, question=question) if choice_id else None
-            
-            answer, created = Answer.objects.get_or_create(
-                attempt=attempt,
-                question=question,
-                defaults={'selected_choice': choice}
-            )
-            
-            if not created:
-                answer.selected_choice = choice
-                answer.save()
-            
-            return JsonResponse({'success': True})
-            
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
-    
-    # Handle final exam submission
-    if request.method == 'POST' and 'submit_exam' in request.POST:
-        attempt.is_submitted = True
-        attempt.end_time = timezone.now()
-        attempt.calculate_score()
-        
-        messages.success(request, 'Exam submitted successfully!')
+
+    # Parse JSON body
+    try:
+        data = json.loads(request.body)
+        question_id = data.get('question_id')
+        choice_id = data.get('choice_id')
+
+        question = get_object_or_404(Question, id=question_id, exam=exam)
+        choice = get_object_or_404(Choice, id=choice_id, question=question) if choice_id else None
+
+        answer, created = Answer.objects.get_or_create(
+            attempt=attempt,
+            question=question,
+            defaults={'selected_choice': choice}
+        )
+
+        if not created:
+            answer.selected_choice = choice
+            answer.save()
+
+        return JsonResponse({'success': True})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+@require_POST
+@login_required
+def submit_exam(request, exam_id):
+    """Finalize an exam attempt and calculate score"""
+    exam = get_object_or_404(Exam, id=exam_id, is_published=True)
+
+    try:
+        attempt = Attempt.objects.get(student=request.user, exam=exam)
+    except Attempt.DoesNotExist:
+        messages.error(request, 'No active attempt found. Please start the exam first.')
+        return redirect('student:exam_detail', exam_id=exam.id)
+
+    if attempt.is_submitted:
+        messages.info(request, 'This exam has already been submitted.')
         return redirect('results:result_detail', attempt_id=attempt.id)
-    
-    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+    # Finalize attempt
+    attempt.is_submitted = True
+    attempt.end_time = timezone.now()
+    attempt.calculate_score()
+    send_exam_completed_email(attempt)
+
+    messages.success(request, 'Exam submitted successfully!')
+    return redirect('results:result_detail', attempt_id=attempt.id)

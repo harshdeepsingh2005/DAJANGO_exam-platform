@@ -17,10 +17,22 @@ def result_detail(request, attempt_id):
     total_questions = attempt.exam.total_questions()
     total_marks = attempt.exam.total_marks()
     correct_answers = 0
-    
-    for answer in attempt.answers.all():
-        if answer.selected_choice and answer.selected_choice.is_correct:
+    question_results = []
+
+    for answer in attempt.answers.select_related('question', 'selected_choice'):
+        is_correct = bool(answer.selected_choice and answer.selected_choice.is_correct)
+        if is_correct:
             correct_answers += 1
+
+        question = answer.question
+        correct_choice = question.get_correct_choice()
+
+        question_results.append({
+            'question': question,
+            'selected_choice': answer.selected_choice,
+            'correct_choice': correct_choice,
+            'is_correct': is_correct,
+        })
     
     percentage = (attempt.score / total_marks * 100) if total_marks > 0 else 0
     passed = percentage >= 60  # 60% pass criteria
@@ -32,6 +44,7 @@ def result_detail(request, attempt_id):
         'total_marks': total_marks,
         'percentage': round(percentage, 2),
         'passed': passed,
+        'question_results': question_results,
     }
     
     return render(request, 'results/result_detail.html', context)

@@ -1,6 +1,6 @@
-# Django Online Examination Platform
+# NovaExam  Django Online Examination Platform
 
-A complete online examination platform built with Django, featuring separate interfaces for students and administrators. This is a production-ready MVP designed for educational institutions.
+NovaExam is a complete online examination platform built with Django, featuring separate interfaces for students and administrators. This is a production-ready MVP designed for educational institutions.
 
 ## Features
 
@@ -76,6 +76,34 @@ python manage.py runserver
 ```
 
 Visit: http://127.0.0.1:8000
+
+## Running Tests
+
+### Unit tests
+
+Use Django's test runner:
+
+```bash
+python manage.py test
+```
+
+### Browser-based tests (Selenium)
+
+There is an optional end-to-end browser test that uses Selenium and Chrome/Chromium:
+
+1. Install test-only dependencies:
+
+```bash
+pip install -r requirements-test.txt
+```
+
+2. Ensure you have Chrome/Chromium installed and a matching `chromedriver` on your `PATH`.
+
+3. Run the browser tests (they are included in the normal test run):
+
+```bash
+python manage.py test tests.test_browser_flow
+```
 
 ## Default Login Credentials (Sample Data)
 
@@ -173,6 +201,126 @@ exam_platform/
 /admin-panel/exams/        → Manage Exams
 /admin/                    → Django Admin
 ```
+
+## NovaExam Portal  Page Flow & Route Structure
+
+### `/` (Landing Page)
+
+- Hero + CTAs
+	- **Login**  `/accounts/login/`
+	- **Register**  `/accounts/register/`
+	- **Get Started**
+		- Not authenticated  `/accounts/register/`
+		- Authenticated
+			- Student  `/student/`
+			- Admin  `/admin-panel/`
+- How It Works / Features (Student & Admin)
+- Role-based CTAs
+	- Student Dashboard  `/student/`
+	- Admin Panel  `/admin-panel/`
+- Footer: Login, Register, Terms, Support
+
+### Authentication
+
+- `/accounts/login/`
+	- Student login  `/student/`
+- `/accounts/register/`
+	- New user registration  `/student/`
+- `/accounts/login/?next=/admin-panel/`
+	- Admin login  `/admin-panel/`
+
+### Student Flow
+
+- `/student/` (Dashboard)
+	- Exam lists: Available / In Progress / Completed
+	- Recent attempts
+	- Navbar: Profile  `/student/profile/`
+
+- `/student/exam/<exam_id>/` (Exam Detail)
+	- Start Exam  confirmation  `/student/exam/<exam_id>/start/`
+		- Creates attempt, starts timer, redirects to Take Exam
+
+- `/student/exam/<exam_id>/start/` (Start Exam)
+	- Confirmation and attempt creation
+	- Redirects to `take` route
+
+- `/student/exam/<exam_id>/take/?q=N` (Take Exam)
+	- One question at a time
+	- Next / Previous navigation
+	- Question navigator sidebar
+	- Auto-save answers
+	- Persistent timer
+	- **Review & Submit**  `/student/exam/<exam_id>/review/`
+
+- `/student/exam/<exam_id>/review/` (Review Answers)
+	- Question table: Answered / Unanswered / Marked
+	- Go-to-question links
+	- **Submit Exam**
+		- Locks attempt
+		- Auto-grades
+		- Redirects to Result
+
+- `/results/result/<attempt_id>/` (Result Page)
+	- Score, pass/fail, time taken
+	- Per-question breakdown and answer review
+
+- `/student/profile/`
+	- User details
+	- Attempt history
+	- Performance stats
+
+### Admin Flow (Custom Admin Panel)
+
+- `/admin-panel/` (Admin Dashboard)
+	- Metrics: total students, exams, attempts
+	- Recent attempts table
+	- Quick actions:
+		- Create Exam  `/admin-panel/exams/create/`
+		- Manage Exams  `/admin-panel/exams/`
+		- Django Admin  `/admin/`
+		- Student View  `/student/`
+
+- `/admin-panel/exams/` (Manage Exams)
+	- Per-exam actions:
+		- Manage Questions  `/admin-panel/exams/<id>/questions/`
+		- View Attempts  `/admin-panel/exams/<id>/attempts/`
+			- Attempt detail  `/results/result/<attempt_id>/`
+		- View Analytics  `/admin-panel/exams/<id>/stats/`
+		- Edit Exam  `/admin-panel/exams/<id>/edit/`
+		- Publish / Unpublish  `/admin-panel/exams/<id>/toggle-publish/`
+
+- `/admin-panel/exams/create/`
+	- Create new exam
+
+- `/admin-panel/exams/<id>/questions/`
+	- List / add / edit / delete questions
+
+- `/admin-panel/exams/<id>/attempts/`
+	- Attempts list
+	- Links to result detail
+
+- `/admin-panel/exams/<id>/stats/`
+	- Average score, attempt distribution
+	- Question accuracy, time analytics
+
+### System Admin (Django)
+
+- `/admin/`
+	- Users, groups & permissions
+	- Exams, questions, choices
+	- Attempts, answers
+
+### Global Guards & Rules
+
+- **Auth guard**
+	- Not logged in  `/accounts/login/?next=<requested_url>`
+- **Role guard**
+	- Student  `/student/`
+	- Admin  `/admin-panel/`
+- **Exam state guard**
+	- Available  start allowed
+	- In Progress  resume only
+	- Completed  result view only
 
 ## Customization
 

@@ -3,8 +3,20 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 
+class Category(models.Model):
+    """Simple category for grouping exams (e.g., Math, Programming)"""
+    name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
 class Exam(models.Model):
     """Model for storing exam information"""
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='exams')
     title = models.CharField(max_length=200)
     description = models.TextField()
     duration_minutes = models.PositiveIntegerField()
@@ -35,6 +47,9 @@ class Question(models.Model):
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='questions')
     text = models.TextField()
     marks = models.PositiveIntegerField(default=1)
+    image = models.ImageField(upload_to='question_images/', null=True, blank=True)
+    time_limit_seconds = models.PositiveIntegerField(null=True, blank=True, help_text="Optional per-question time limit in seconds")
+    explanation = models.TextField(blank=True, help_text="Optional explanation shown after the exam is submitted")
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):

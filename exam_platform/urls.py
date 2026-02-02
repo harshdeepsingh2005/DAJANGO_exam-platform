@@ -17,13 +17,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
+from django.conf import settings
+from django.conf.urls.static import static
+
+from exams import views as exam_views
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', lambda request: redirect('student:dashboard')),
+    path('', exam_views.landing, name='landing'),
     path('accounts/', include('accounts.urls')),
     path('student/', include('exams.urls', namespace='student')),
     path('admin-panel/', include('exams.admin_urls', namespace='admin-panel')),
     path('attempts/', include('attempts.urls')),
     path('results/', include('results.urls')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

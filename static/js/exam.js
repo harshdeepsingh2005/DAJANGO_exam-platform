@@ -61,7 +61,7 @@ class ExamTimer {
     }
 
     saveAnswer(questionId, choiceId) {
-        return fetch(`/student/exam/${this.examId}/submit/`, {
+        return fetch(`/student/exam/${this.examId}/save-answer/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

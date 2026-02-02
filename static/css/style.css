@@ -1,36 +1,107 @@
-/* Custom styles for Exam Platform */
+/* Custom styles for NovaExam */
 
 :root {
-    --primary-blue: #007BFF;
-    --success-green: #28a745;
-    --danger-red: #dc3545;
-    --warning-amber: #ffc107;
-    --light-bg: #f8f9fa;
-    --dark-text: #343a40;
+    /* Brand palette */
+    --primary-blue: #0F4C5C; /* Deep Teal: nav, headers, emphasis */
+    --accent-cyan: #00BFFF; /* Vibrant Cyan: primary actions, progress */
+    --primary-blue-soft: rgba(15, 76, 92, 0.10);
+
+    /* Status + neutrals */
+    --success-green: #28c76f;
+    --danger-red: #E53935; /* Status Red */
+    --warning-amber: #ffc861;
+    --light-bg: #F4F7F9; /* Cloud Gray */
+    --dark-text: #1f2430;
+
+    /* Surfaces */
+    --card-bg: rgba(255, 255, 255, 0.96);
+    --card-border: rgba(255, 255, 255, 0.7);
+    --soft-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
 }
 
 /* Base typography and layout */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--light-bg);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background:
+        radial-gradient(circle at 0% 0%, rgba(0, 191, 255, 0.12), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(15, 76, 92, 0.16), transparent 55%),
+        var(--light-bg);
     color: var(--dark-text);
+}
+
+/* Navbar styling */
+.navbar-nova {
+    background: linear-gradient(120deg, #0F4C5C, #0b3742);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+    backdrop-filter: blur(14px);
+    position: relative;
+    z-index: 1200;
+}
+
+.navbar-nova .navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: #f9fbff !important;
+}
+
+.navbar-nova .navbar-brand i {
+    margin-right: 0.35rem;
+}
+
+.navbar-nova .navbar-brand:hover {
+    text-shadow: 0 0 12px rgba(0, 191, 255, 0.8);
+}
+
+.navbar-nova .nav-link {
+    position: relative;
+    font-weight: 500;
+    color: #f0f7ff !important;
+}
+
+.navbar-nova .nav-link::after {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: 0.35rem;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--accent-cyan);
+    transform-origin: center;
+    transform: scaleX(0);
+    transition: transform 0.25s ease;
+    opacity: 0.9;
+}
+
+.navbar-nova .nav-link:hover::after,
+.navbar-nova .nav-link.active::after {
+    transform: scaleX(1);
+}
+
+.navbar-nova .nav-link:hover,
+.navbar-nova .nav-link:focus {
+    color: #ffffff !important;
 }
 
 /* Card styling */
 .card {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    transition: box-shadow 0.3s ease;
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    background: var(--card-bg);
+    box-shadow: 0 10px 35px rgba(15, 23, 42, 0.06);
+    backdrop-filter: blur(18px);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .card:hover {
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    transform: translateY(-4px);
+    box-shadow: var(--soft-shadow);
+    border-color: var(--primary-blue-soft);
 }
 
 /* Exam specific styling */
 .exam-header-bar {
-    background: linear-gradient(135deg, var(--primary-blue), #0056b3);
+    background: linear-gradient(135deg, var(--primary-blue), #062933);
     color: white;
     padding: 1rem 0;
     position: sticky;
@@ -79,8 +150,8 @@ body {
 }
 
 .question-num-btn.current {
-    background-color: var(--primary-blue);
-    border-color: var(--primary-blue);
+    background-color: var(--accent-cyan);
+    border-color: var(--accent-cyan);
     color: white;
     transform: scale(1.1);
 }
@@ -96,13 +167,13 @@ body {
 }
 
 .choice-option:hover {
-    border-color: var(--primary-blue);
+    border-color: var(--accent-cyan);
     background-color: #f8f9ff;
     transform: translateY(-1px);
 }
 
 .choice-option.selected {
-    border-color: var(--primary-blue);
+    border-color: var(--accent-cyan);
     background-color: #e7f3ff;
     box-shadow: 0 2px 8px rgba(0,123,255,0.2);
 }
@@ -136,8 +207,19 @@ body {
 }
 
 .btn-primary {
-    background-color: var(--primary-blue);
-    border-color: var(--primary-blue);
+    background-color: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+}
+
+.btn-soft-primary {
+    background-color: var(--primary-blue-soft);
+    border-color: transparent;
+    color: var(--primary-blue);
+}
+
+.btn-soft-primary:hover {
+    background-color: rgba(0, 191, 255, 0.16);
+    color: var(--accent-cyan);
 }
 
 /* Form improvements */
@@ -148,8 +230,8 @@ body {
 }
 
 .form-control:focus {
-    border-color: var(--primary-blue);
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 0.2rem rgba(0,191,255,0.25);
 }
 
 /* Alert improvements */
@@ -253,17 +335,176 @@ body {
 
 /* Gradient backgrounds */
 .exam-header {
-    background: linear-gradient(135deg, var(--primary-blue), #0056b3);
+    background: radial-gradient(circle at top left, rgba(0,191,255,0.28), transparent 60%),
+                radial-gradient(circle at bottom right, rgba(15,76,92,0.32), transparent 55%),
+                linear-gradient(135deg, #0F4C5C, #062933);
     color: white;
-    padding: 2rem 0;
+    padding: 2.5rem 0 2rem;
+    border-radius: 0 0 32px 32px;
+    animation: headerDrop 0.6s ease forwards;
+    transform-origin: top center;
+}
+
+@keyframes headerDrop {
+    0% {
+        opacity: 0;
+        transform: translateY(-18px) scaleY(0.96);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scaleY(1);
+    }
 }
 
 /* Hover effects for cards */
 .exam-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.exam-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(79,139,255,0.16), transparent 55%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
 }
 
 .exam-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    transform: translateY(-4px);
+    box-shadow: var(--soft-shadow);
+}
+
+.exam-card:hover::before {
+    opacity: 1;
+}
+
+/* Bento-style grid layout */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+}
+
+.bento-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.bento-pill-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,191,255,0.10);
+    color: var(--accent-cyan);
+}
+
+.bento-metadata {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.bento-metadata i {
+    margin-right: 0.25rem;
+}
+
+/* Simple entrance animations for cards/sections */
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    opacity: 0;
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.fade-in-up.delay-1 {
+    animation-delay: 0.08s;
+}
+
+.fade-in-up.delay-2 {
+    animation-delay: 0.16s;
+}
+
+.fade-in-up.delay-3 {
+    animation-delay: 0.24s;
+}
+
+/* Landing hero tweaks */
+.landing-hero-title {
+    letter-spacing: 0.03em;
+}
+
+.landing-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(0, 191, 255, 0.12);
+    color: var(--primary-blue);
+    font-size: 0.8rem;
+}
+
+/* Floating help chatbot */
+.nova-chat-toggle {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 1080;
+    border-radius: 999px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.35);
+}
+
+.nova-chat-window {
+    position: fixed;
+    bottom: 5.5rem;
+    right: 1.5rem;
+    width: 320px;
+    max-height: 420px;
+    z-index: 1080;
+    display: none;
+}
+
+.nova-chat-window.open {
+    display: block;
+}
+
+.nova-chat-body {
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.nova-chat-message {
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.nova-chat-message.user {
+    text-align: right;
+}
+
+.nova-chat-message.user span {
+    display: inline-block;
+    background: var(--accent-cyan);
+    color: #fff;
+}
+
+.nova-chat-message.bot span {
+    display: inline-block;
+    background: #eef4ff;
 }

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - NovaExam{% endblock %}
+
+{% block content %}
+<div class="exam-header text-center mb-4 fade-in-up">
+    <div class="container">
+        <h1 class="h3 mb-1"><i class="bi bi-person-badge"></i> My profile</h1>
+        <p class="text-light mb-0 small">Your account details and a history of your exam activity.</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 fade-in-up delay-1">
+            <div class="card exam-card mb-4">
+                <div class="card-body">
+                    <h5 class="mb-3">Account details</h5>
+                    <p class="mb-1"><strong>Username:</strong> {{ user.username }}</p>
+                    <p class="mb-1"><strong>Full name:</strong> {{ user.get_full_name|default:"Not set" }}</p>
+                    <p class="mb-0"><strong>Email:</strong> {{ user.email|default:"Not set" }}</p>
+                </div>
+            </div>
+
+            <div class="card exam-card">
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="bi bi-clock-history"></i> Exam history</h5>
+                    {% if attempts %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Exam</th>
+                                        <th>Status</th>
+                                        <th>Score</th>
+                                        <th>Completed</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for attempt in attempts %}
+                                        <tr>
+                                            <td>{{ attempt.exam.title }}</td>
+                                            <td>
+                                                {% if attempt.is_submitted %}
+                                                    <span class="badge bg-success">Submitted</span>
+                                                {% elif attempt.is_expired %}
+                                                    <span class="badge bg-warning text-dark">Expired</span>
+                                                {% else %}
+                                                    <span class="badge bg-info text-dark">In Progress</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if attempt.is_submitted %}
+                                                    {{ attempt.score }}/{{ attempt.exam.total_marks }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if attempt.end_time %}
+                                                    {{ attempt.end_time|date:"M j, Y g:i A" }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-end">
+                                                {% if attempt.is_submitted %}
+                                                    <a href="{% url 'results:result_detail' attempt.id %}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-file-earmark-text"></i> View Result
+                                                    </a>
+                                                {% elif attempt.exam.is_active %}
+                                                    <a href="{% url 'student:take_exam' attempt.exam.id %}" class="btn btn-sm btn-outline-warning">
+                                                        <i class="bi bi-arrow-right-circle"></i> Continue
+                                                    </a>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">You haven't started any exams yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

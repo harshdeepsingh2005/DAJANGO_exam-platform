@@ -5,81 +5,20 @@
 
 {% block extra_css %}
 <style>
-    .exam-header-bar {
-        background: linear-gradient(135deg, #007BFF, #0056b3);
-        color: white;
-        padding: 1rem 0;
-        position: sticky;
-        top: 0;
-        z-index: 1020;
-    }
-    
-    .timer-display {
-        font-size: 1.25rem;
-        font-weight: bold;
-    }
-    
-    .question-nav {
-        max-height: 300px;
-        overflow-y: auto;
-    }
-    
-    .question-num-btn {
-        width: 40px;
-        height: 40px;
-        margin: 2px;
-        font-size: 14px;
-    }
-    
-    .question-num-btn.answered {
-        background-color: #28a745;
-        border-color: #28a745;
-        color: white;
-    }
-    
-    .question-num-btn.current {
-        background-color: #007BFF;
-        border-color: #007BFF;
-        color: white;
-    }
-    
-    .choice-option {
-        margin-bottom: 1rem;
-        padding: 1rem;
-        border: 2px solid #e9ecef;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    
-    .choice-option:hover {
-        border-color: #007BFF;
-        background-color: #f8f9ff;
-    }
-    
-    .choice-option.selected {
-        border-color: #007BFF;
-        background-color: #e7f3ff;
-    }
-    
-    .choice-radio {
-        margin-right: 0.75rem;
-        transform: scale(1.2);
-    }
-    
+    /* Page-specific mobile tweaks for easier tap targets and navigation */
     @media (max-width: 768px) {
-        .timer-display {
-            font-size: 1rem;
+        .choice-option label {
+            display: flex;
+            align-items: center;
+            min-height: 48px;
         }
-        
-        .question-num-btn {
-            width: 35px;
-            height: 35px;
-            font-size: 12px;
-        }
-        
-        .choice-option {
-            padding: 0.75rem;
+
+        .question-nav-mobile-toggle {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 1050;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
     }
 </style>
@@ -98,10 +37,16 @@
                 <div class="timer-display" id="timer">
                     <i class="bi bi-clock"></i> <span id="time-remaining">Loading...</span>
                 </div>
+                {% if current_question.time_limit_seconds %}
+                    <div class="small mt-1">
+                        <i class="bi bi-stopwatch"></i>
+                        Per-question limit: <span id="question-time-remaining"></span>
+                    </div>
+                {% endif %}
             </div>
             <div class="col-md-4 text-end">
-                <button type="button" class="btn btn-danger" onclick="submitExam()">
-                    <i class="bi bi-check-square"></i> Finish Exam
+                <button type="button" class="btn btn-danger" onclick="goToReview()">
+                    <i class="bi bi-check-square"></i> Review & Submit
                 </button>
             </div>
         </div>
@@ -119,6 +64,11 @@
                 </div>
                 <div class="card-body">
                     <div class="question-text mb-4">
+                        {% if current_question.image %}
+                            <div class="mb-3 text-center">
+                                <img src="{{ current_question.image.url }}" alt="Question image" class="img-fluid rounded border">
+                            </div>
+                        {% endif %}
                         <p class="h6">{{ current_question.text|linebreaksbr }}</p>
                     </div>
                     
@@ -165,8 +115,8 @@
             </div>
         </div>
         
-        <!-- Sidebar -->
-        <div class="col-lg-4">
+        <!-- Sidebar (desktop / large screens) -->
+        <div class="col-lg-4 d-none d-lg-block">
             <div class="card">
                 <div class="card-header">
                     <h6 class="mb-0">Question Navigator</h6>
@@ -199,7 +149,7 @@
                 </div>
             </div>
             
-            <!-- Progress Card -->
+            <!-- Progress Card (desktop) -->
             <div class="card mt-3">
                 <div class="card-body text-center">
                     <h6>Progress</h6>
@@ -221,14 +171,17 @@
 {% endblock %}
 
 {% block extra_js %}
-<script id="answers-data" type="application/json">{{ answers|json_script:"answers-data" }}</script>
+{{ answers|json_script:"answers-data" }}
 <script>
     let timeRemaining = parseInt("{{ time_remaining|add:'0' }}");
     let timerInterval;
+    let questionTimeRemaining = {% if current_question.time_limit_seconds %}parseInt("{{ current_question.time_limit_seconds|add:'0' }}"){% else %}null{% endif %};
+    let questionTimerInterval;
     // CSRF token for AJAX requests
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    // Parse answers dict from JSON
+    // Parse answers dict from JSON (rendered via json_script above)
     const answers = JSON.parse(document.getElementById('answers-data').textContent);
+    let offcanvasInstance = null;
 
     function updateTimer() {
         if (timeRemaining <= 0) {
@@ -257,7 +210,43 @@
     function startTimer() {
         updateTimer();
         timerInterval = setInterval(updateTimer, 1000);
+        if (questionTimeRemaining !== null) {
+            updateQuestionTimer();
+            questionTimerInterval = setInterval(updateQuestionTimer, 1000);
+        }
     }
+    function updateQuestionTimer() {
+        const el = document.getElementById('question-time-remaining');
+        if (!el || questionTimeRemaining === null) return;
+
+        if (questionTimeRemaining <= 0) {
+            clearInterval(questionTimerInterval);
+            el.textContent = 'Time up';
+            // Auto-move to next question if available, otherwise go to review
+            const nextLink = document.querySelector('.card-footer a.btn.btn-primary');
+            if (nextLink) {
+                window.location.href = nextLink.getAttribute('href');
+            } else {
+                goToReview();
+            }
+            return;
+        }
+
+        const minutes = Math.floor(questionTimeRemaining / 60);
+        const seconds = questionTimeRemaining % 60;
+        el.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+        questionTimeRemaining--;
+    }
+
+    function selectChoiceFromAttr(element) {
+        const choiceId = element.getAttribute('data-choice-id');
+        if (!choiceId) {
+            return;
+        }
+        selectChoice(parseInt(choiceId, 10));
+    }
+
     function selectChoice(choiceId) {
         // Update UI
         const choiceOptions = document.querySelectorAll('.choice-option');
@@ -279,7 +268,7 @@
         updateProgress();
     }
     function saveAnswer(questionId, choiceId) {
-        fetch("{% url 'student:submit_exam' exam.id %}", {
+        fetch("{% url 'student:save_answer' exam.id %}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -323,14 +312,25 @@
         document.getElementById('progress-bar').style.width = percentage + '%';
         document.getElementById('progress-text').textContent = `${totalAnswered} of ${totalQuestions} answered`;
     }
-    function submitExam() {
-        if (confirm('Are you sure you want to submit the exam? You cannot make changes after submission.')) {
-            document.getElementById('final-submit-form').submit();
+    function goToReview() {
+        if (confirm('Do you want to go to the review page? You can still change your answers there before final submission.')) {
+            window.location.href = "{% url 'student:review_exam' exam.id %}";
         }
     }
     function autoSubmitExam() {
         alert('Time is up! Your exam will be submitted automatically.');
         document.getElementById('final-submit-form').submit();
+    }
+    function openMobileNavigator() {
+        if (!offcanvasInstance) {
+            const el = document.getElementById('questionNavOffcanvas');
+            if (el && window.bootstrap && bootstrap.Offcanvas) {
+                offcanvasInstance = new bootstrap.Offcanvas(el);
+            }
+        }
+        if (offcanvasInstance) {
+            offcanvasInstance.show();
+        }
     }
     document.addEventListener('DOMContentLoaded', function() {
         startTimer();
@@ -343,4 +343,42 @@
         });
     });
 </script>
+<!-- Mobile question navigator (offcanvas) -->
+<div class="offcanvas offcanvas-bottom d-lg-none" tabindex="-1" id="questionNavOffcanvas">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Question Navigator</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="question-nav mb-3">
+            {% for question in exam.questions.all %}
+                <a href="?q={{ forloop.counter }}" 
+                     class="btn btn-outline-secondary question-num-btn mb-1 
+                                    {% if answers|lookup:question.id %}answered{% endif %}
+                                    {% if question.id == current_question.id %}current{% endif %}">
+                        {{ forloop.counter }}
+                </a>
+            {% endfor %}
+        </div>
+        <div class="small">
+            <div class="d-flex align-items-center mb-2">
+                <div class="btn btn-outline-secondary question-num-btn me-2" style="width: 32px; height: 32px; font-size: 10px;">1</div>
+                <span>Not Answered</span>
+            </div>
+            <div class="d-flex align-items-center mb-2">
+                <div class="btn question-num-btn answered me-2" style="width: 32px; height: 32px; font-size: 10px;">2</div>
+                <span>Answered</span>
+            </div>
+            <div class="d-flex align-items-center">
+                <div class="btn question-num-btn current me-2" style="width: 32px; height: 32px; font-size: 10px;">3</div>
+                <span>Current</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating mobile toggle button -->
+<button type="button" class="btn btn-primary rounded-circle d-lg-none question-nav-mobile-toggle" onclick="openMobileNavigator()">
+    <i class="bi bi-list-ol"></i>
+</button>
 {% endblock %}

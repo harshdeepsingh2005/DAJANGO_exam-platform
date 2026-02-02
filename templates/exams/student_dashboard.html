@@ -1,66 +1,94 @@
 {% extends 'base.html' %}
 
-{% block title %}Student Dashboard - Exam Platform{% endblock %}
+{% block title %}Student Dashboard - NovaExam{% endblock %}
 
 {% block content %}
-<div class="exam-header text-center mb-4">
+<div class="exam-header text-center mb-4 fade-in-up">
     <div class="container">
         <h1><i class="bi bi-mortarboard"></i> Student Dashboard</h1>
-        <p class="lead mb-0">Welcome back, {{ user.get_full_name|default:user.username }}!</p>
+        <p class="lead mb-1">Welcome back, {{ user.get_full_name|default:user.username }}!</p>
+        <a href="{% url 'student:global_leaderboard' %}" class="btn btn-sm btn-outline-light mt-2">
+            <i class="bi bi-trophy"></i> View global leaderboard
+        </a>
     </div>
 </div>
 
 <div class="container">
-    <div class="row">
+    <div class="row mb-4">
         <div class="col-12">
-            <h2 class="mb-4">Available Exams</h2>
+            <h2 class="mb-3">Available Exams</h2>
+
+            {% if categories %}
+                <form method="get" class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <select name="category" class="form-select" onchange="this.form.submit()">
+                            <option value="">All Categories</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.id }}" {% if selected_category_id|default:'' == cat.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ cat.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            {% endif %}
             
             {% if exam_statuses %}
-                <div class="row">
+                <div class="bento-grid">
                     {% for item in exam_statuses %}
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card h-100">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0">{{ item.exam.title }}</h5>
-                                    {% if item.status == 'Available' %}
-                                        <span class="badge bg-success">Available</span>
-                                    {% elif item.status == 'In Progress' %}
-                                        <span class="badge bg-warning text-dark">In Progress</span>
-                                    {% elif item.status == 'Completed' %}
-                                        <span class="badge bg-primary">Completed</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">Not Available</span>
-                                    {% endif %}
-                                </div>
+                        <div>
+                            <div class="card exam-card h-100">
                                 <div class="card-body">
-                                    <p class="card-text">{{ item.exam.description|truncatewords:20 }}</p>
-                                    
-                                    <div class="small text-muted mb-3">
-                                        <div><i class="bi bi-clock"></i> Duration: {{ item.exam.duration_minutes }} minutes</div>
-                                        <div><i class="bi bi-calendar-event"></i> Available: {{ item.exam.start_time|date:"M j, Y g:i A" }} - {{ item.exam.end_time|date:"M j, Y g:i A" }}</div>
-                                        <div><i class="bi bi-question-circle"></i> Questions: {{ item.exam.total_questions }}</div>
-                                        <div><i class="bi bi-star"></i> Total Marks: {{ item.exam.total_marks }}</div>
+                                    <div class="bento-card-header mb-3">
+                                        <div>
+                                            <div class="bento-pill-icon mb-2">
+                                                <i class="bi bi-journal-text"></i>
+                                            </div>
+                                            <h5 class="mb-1">{{ item.exam.title }}</h5>
+                                            {% if item.exam.category %}
+                                                <span class="badge rounded-pill bg-light text-muted border">{{ item.exam.category.name }}</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-end">
+                                            {% if item.status == 'Available' %}
+                                                <span class="badge bg-success rounded-pill">Available</span>
+                                            {% elif item.status == 'In Progress' %}
+                                                <span class="badge bg-warning text-dark rounded-pill">In Progress</span>
+                                            {% elif item.status == 'Completed' %}
+                                                <span class="badge bg-primary rounded-pill">Completed</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary rounded-pill">Not Available</span>
+                                            {% endif %}
+                                        </div>
                                     </div>
-                                    
+
+                                    <p class="card-text mb-3">{{ item.exam.description|truncatewords:22 }}</p>
+
+                                    <div class="bento-metadata mb-3">
+                                        <div><i class="bi bi-clock"></i> {{ item.exam.duration_minutes }} min • {{ item.exam.total_questions }} questions</div>
+                                        <div><i class="bi bi-calendar-event"></i> {{ item.exam.start_time|date:"M j" }} – {{ item.exam.end_time|date:"M j" }}</div>
+                                        <div><i class="bi bi-star"></i> {{ item.exam.total_marks }} total marks</div>
+                                    </div>
+
                                     {% if item.status == 'Available' %}
-                                        <a href="{% url 'student:exam_detail' item.exam.id %}" class="btn btn-success">
+                                        <a href="{% url 'student:exam_detail' item.exam.id %}" class="btn btn-soft-primary w-100">
                                             <i class="bi bi-play-fill"></i> Start Exam
                                         </a>
                                     {% elif item.status == 'In Progress' %}
-                                        <a href="{% url 'student:take_exam' item.exam.id %}" class="btn btn-warning">
+                                        <a href="{% url 'student:take_exam' item.exam.id %}" class="btn btn-warning w-100">
                                             <i class="bi bi-arrow-right-circle"></i> Continue Exam
                                         </a>
                                     {% elif item.status == 'Completed' %}
-                                        <a href="{% url 'results:result_detail' item.attempt.id %}" class="btn btn-primary">
+                                        <a href="{% url 'results:result_detail' item.attempt.id %}" class="btn btn-primary w-100">
                                             <i class="bi bi-file-earmark-text"></i> View Result
                                         </a>
                                         {% if item.attempt.score %}
-                                            <div class="mt-2 small">
-                                                <strong>Score: {{ item.attempt.score }}/{{ item.exam.total_marks }}</strong>
+                                            <div class="mt-2 small text-center text-muted">
+                                                Score: <strong>{{ item.attempt.score }}/{{ item.exam.total_marks }}</strong>
                                             </div>
                                         {% endif %}
                                     {% else %}
-                                        <button class="btn btn-secondary" disabled>
+                                        <button class="btn btn-secondary w-100" disabled>
                                             <i class="bi bi-lock"></i> Not Available
                                         </button>
                                     {% endif %}
@@ -75,6 +103,71 @@
                     <h3 class="text-muted mt-3">No Exams Available</h3>
                     <p class="text-muted">Check back later for new exams!</p>
                 </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-3"><i class="bi bi-clock-history"></i> Recent Attempts</h3>
+
+            {% if recent_attempts %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Exam</th>
+                                <th>Status</th>
+                                <th>Score</th>
+                                <th>Completed</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in recent_attempts %}
+                                <tr>
+                                    <td>{{ attempt.exam.title }}</td>
+                                    <td>
+                                        {% if attempt.is_submitted %}
+                                            <span class="badge bg-success">Submitted</span>
+                                        {% elif attempt.is_expired %}
+                                            <span class="badge bg-warning text-dark">Expired</span>
+                                        {% else %}
+                                            <span class="badge bg-info text-dark">In Progress</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attempt.is_submitted %}
+                                            {{ attempt.score }}/{{ attempt.exam.total_marks }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attempt.end_time %}
+                                            {{ attempt.end_time|date:"M j, Y g:i A" }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if attempt.is_submitted %}
+                                            <a href="{% url 'results:result_detail' attempt.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-file-earmark-text"></i> View Result
+                                            </a>
+                                        {% elif attempt.exam.is_active %}
+                                            <a href="{% url 'student:take_exam' attempt.exam.id %}" class="btn btn-sm btn-outline-warning">
+                                                <i class="bi bi-arrow-right-circle"></i> Continue
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">You have no attempts yet.</p>
             {% endif %}
         </div>
     </div>

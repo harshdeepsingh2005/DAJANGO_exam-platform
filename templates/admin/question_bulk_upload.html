@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Bulk Upload Questions - {{ exam.title }}{% endblock %}
+
+{% block content %}
+<div class="exam-header text-center mb-4 fade-in-up">
+    <div class="container">
+        <h1 class="h3 mb-1"><i class="bi bi-upload"></i> Bulk upload questions</h1>
+        <p class="text-light mb-0 small">Import multiple MCQ questions for "{{ exam.title }}" from a CSV file.</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 fade-in-up delay-1">
+            <div class="card exam-card mb-4">
+                <div class="card-body">
+                    <h5 class="mb-3">Upload file</h5>
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger mb-3">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label" for="id_file">Question CSV file</label>
+                            {{ form.file }}
+                            {% if form.file.help_text %}
+                                <div class="form-text">{{ form.file.help_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-check mb-3">
+                            {{ form.clear_existing }}
+                            <label class="form-check-label" for="id_clear_existing">
+                                {{ form.clear_existing.label }}
+                            </label>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'admin-panel:question_list' exam.id %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to questions
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-upload"></i> Import questions
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card exam-card">
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="bi bi-info-circle"></i> CSV format</h5>
+                    <p class="small text-muted mb-2">Your file must be a UTF-8 encoded CSV with a header row. Required columns are highlighted below.</p>
+                    <pre class="small bg-light p-3 rounded border mb-2">question,option1,option2,option3,option4,correct,marks,explanation,time_limit_seconds
+What is 2+2?,1,2,3,4,4,1,Basic addition question,60
+Which language is Django written in?,Python,Java,PHP,Ruby,Python,1,Web framework basics,</pre>
+                    <ul class="small text-muted mb-0">
+                        <li><strong>question</strong>, <strong>option1</strong>–<strong>option4</strong>, <strong>correct</strong> are required.</li>
+                        <li><strong>correct</strong> can be <code>1</code>–<code>4</code> (option position) or the exact option text.</li>
+                        <li><strong>marks</strong> defaults to 1 when empty.</li>
+                        <li><strong>time_limit_seconds</strong> is optional per-question timer in seconds.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

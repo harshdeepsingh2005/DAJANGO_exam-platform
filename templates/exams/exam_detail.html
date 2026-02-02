@@ -3,13 +3,17 @@
 {% block title %}{{ exam.title }} - Exam Details{% endblock %}
 
 {% block content %}
+<div class="exam-header text-center mb-4 fade-in-up">
+    <div class="container">
+        <h1 class="h3 mb-1"><i class="bi bi-journal-text"></i> {{ exam.title }}</h1>
+        <p class="text-light mb-0 small">Review the exam details and instructions before you begin.</p>
+    </div>
+</div>
+
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0"><i class="bi bi-journal-text"></i> {{ exam.title }}</h3>
-                </div>
+        <div class="col-lg-8 fade-in-up delay-1">
+            <div class="card exam-card">
                 <div class="card-body">
                     <div class="mb-4">
                         <h5>Description</h5>
@@ -55,7 +59,7 @@
                     </div>
                     
                     <div class="alert alert-info">
-                        <h6><i class="bi bi-info-circle"></i> Important Instructions:</h6>
+                        <h6><i class="bi bi-info-circle"></i> Important Instructions</h6>
                         <ul class="mb-0">
                             <li>You will have {{ exam.duration_minutes }} minutes to complete this exam</li>
                             <li>The timer will start automatically when you begin</li>

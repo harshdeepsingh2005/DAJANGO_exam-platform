@@ -9,9 +9,14 @@
             <h2>Questions for: {{ exam.title }}</h2>
             <p class="text-muted">{{ questions.count }} question{{ questions.count|pluralize }} created</p>
         </div>
-        <a href="{% url 'admin-panel:question_create' exam.id %}" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Add Question
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{% url 'admin-panel:question_bulk_upload' exam.id %}" class="btn btn-outline-primary">
+                <i class="bi bi-upload"></i> Bulk Upload
+            </a>
+            <a href="{% url 'admin-panel:question_create' exam.id %}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Add Question
+            </a>
+        </div>
     </div>
     
     <div class="mb-3">

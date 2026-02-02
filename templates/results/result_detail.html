@@ -148,11 +148,89 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Question-by-question Review -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-list-check"></i> Question Review & Explanations</h5>
+                </div>
+                <div class="card-body">
+                    {% if question_results %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Question</th>
+                                        <th>Your Answer</th>
+                                        <th>Correct Answer</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in question_results %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>
+                                                {% if item.question.image %}
+                                                    <div class="mb-1">
+                                                        <img src="{{ item.question.image.url }}" alt="Question image" class="img-fluid rounded border" style="max-height: 120px;">
+                                                    </div>
+                                                {% endif %}
+                                                {{ item.question.text|truncatewords:15 }}
+                                            </td>
+                                            <td>
+                                                {% if item.selected_choice %}
+                                                    <span class="{% if item.is_correct %}text-success{% else %}text-danger{% endif %}">
+                                                        {{ item.selected_choice.text|truncatewords:10 }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted">Not answered</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if item.correct_choice %}
+                                                    {{ item.correct_choice.text|truncatewords:10 }}
+                                                {% else %}
+                                                    <span class="text-muted">Not set</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-end">
+                                                {% if item.question.explanation %}
+                                                    <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#exp-{{ item.question.id }}">
+                                                        <i class="bi bi-info-circle"></i> Explanation
+                                                    </button>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% if item.question.explanation %}
+                                            <tr class="collapse" id="exp-{{ item.question.id }}">
+                                                <td></td>
+                                                <td colspan="4">
+                                                    <div class="alert alert-info mb-0">
+                                                        <strong>Explanation:</strong><br>
+                                                        {{ item.question.explanation|linebreaksbr }}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">Detailed question review is not available for this attempt.</p>
+                    {% endif %}
+                </div>
+            </div>
             
             <!-- Actions -->
             <div class="text-center">
                 <a href="{% url 'student:dashboard' %}" class="btn btn-primary">
                     <i class="bi bi-house"></i> Back to Dashboard
+                </a>
+                <a href="{% url 'student:exam_leaderboard' attempt.exam.id %}" class="btn btn-outline-success">
+                    <i class="bi bi-bar-chart"></i> View Exam Leaderboard
                 </a>
                 
                 <button onclick="window.print()" class="btn btn-outline-primary">

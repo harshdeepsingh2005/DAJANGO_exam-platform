@@ -1,46 +1,55 @@
 {% extends 'base.html' %}
 
-{% block title %}Login - Exam Platform{% endblock %}
+{% block title %}Login - NovaExam{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-        <div class="card">
-            <div class="card-header bg-primary text-white text-center">
-                <h4 class="mb-0"><i class="bi bi-box-arrow-in-right"></i> Login</h4>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5 fade-in-up">
+            <div class="text-center mb-4">
+                <div class="landing-hero-badge mb-2">
+                    <i class="bi bi-shield-lock"></i>
+                    <span>Secure access to NovaExam</span>
+                </div>
+                <h1 class="h3 fw-bold">Sign in to your account</h1>
+                <p class="text-muted small mb-0">Students and admins use the same login page.</p>
             </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    {% if form.errors %}
-                        <div class="alert alert-danger">
-                            {{ form.errors }}
+
+            <div class="card exam-card">
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger mb-3">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                            {{ form.username }}
                         </div>
-                    {% endif %}
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-                        {{ form.username }}
+
+                        <div class="mb-3">
+                            <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                            {{ form.password }}
+                        </div>
+
+                        <div class="d-grid mb-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-box-arrow-in-right"></i> Login
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center small">
+                        <span class="text-muted">New to NovaExam?</span>
+                        <a href="{% url 'accounts:register' %}" class="text-decoration-none">
+                            Create a student account
+                        </a>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
-                        {{ form.password }}
-                    </div>
-                    
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-box-arrow-in-right"></i> Login
-                        </button>
-                    </div>
-                </form>
-                
-                <hr>
-                <div class="text-center">
-                    <p class="mb-0">Don't have an account? 
-                        <a href="{% url 'accounts:register' %}" class="text-decoration-none">Register here</a>
-                    </p>
                 </div>
             </div>
         </div>

@@ -1,83 +1,21 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Exam Platform{% endblock %}</title>
+    <title>{% block title %}NovaExam{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary-blue: #007BFF;
-            --success-green: #28a745;
-            --danger-red: #dc3545;
-            --warning-amber: #ffc107;
-            --light-bg: #f8f9fa;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--light-bg);
-        }
-        
-        .navbar-brand {
-            font-weight: bold;
-            font-size: 1.5rem;
-        }
-        
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .btn-primary {
-            background-color: var(--primary-blue);
-            border-color: var(--primary-blue);
-        }
-        
-        .timer-warning {
-            color: var(--warning-amber);
-        }
-        
-        .timer-danger {
-            color: var(--danger-red);
-        }
-        
-        .question-nav .btn {
-            margin: 2px;
-            min-width: 40px;
-        }
-        
-        .question-nav .answered {
-            background-color: var(--success-green);
-            border-color: var(--success-green);
-        }
-        
-        .exam-header {
-            background: linear-gradient(135deg, var(--primary-blue), #0056b3);
-            color: white;
-            padding: 2rem 0;
-        }
-        
-        @media (max-width: 768px) {
-            .container-fluid {
-                padding: 0.5rem;
-            }
-            
-            .card-body {
-                padding: 1rem;
-            }
-        }
-    </style>
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-nova">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'student:dashboard' %}">
-                <i class="bi bi-mortarboard"></i> Exam Platform
+                <i class="bi bi-mortarboard"></i> NovaExam
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -87,22 +25,34 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'student:dashboard' %}">
+                                <i class="bi bi-house"></i> Dashboard
+                            </a>
+                        </li>
                         {% if user.is_staff %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'admin-panel:dashboard' %}">
-                                    <i class="bi bi-speedometer2"></i> Admin Dashboard
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-gear"></i> Admin
                                 </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'admin-panel:exam_list' %}">
-                                    <i class="bi bi-journal-text"></i> Manage Exams
-                                </a>
-                            </li>
-                        {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'student:dashboard' %}">
-                                    <i class="bi bi-house"></i> Dashboard
-                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'admin-panel:dashboard' %}">
+                                            <i class="bi bi-speedometer2"></i> Admin Dashboard
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'admin-panel:exam_list' %}">
+                                            <i class="bi bi-journal-text"></i> Manage Exams
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'admin:index' %}">
+                                            <i class="bi bi-sliders"></i> Django Admin
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
                         {% endif %}
                     {% endif %}
@@ -115,6 +65,12 @@
                                 <i class="bi bi-person-circle"></i> {{ user.username }}
                             </a>
                             <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'student:profile' %}">
+                                        <i class="bi bi-person-badge"></i> Profile
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">
                                     <i class="bi bi-box-arrow-right"></i> Logout
                                 </a></li>
@@ -155,14 +111,170 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-light text-center py-3 mt-5">
+    <footer class="bg-light border-top mt-5 pt-4 pb-3">
         <div class="container">
-            <p class="mb-0 text-muted">&copy; 2026 Exam Platform. Built with Django & Bootstrap.</p>
+            <div class="row gy-3 align-items-start">
+                <div class="col-md-4 text-center text-md-start">
+                    <h6 class="text-uppercase text-muted mb-2">NovaExam</h6>
+                    <p class="mb-1 small text-muted">Modern online examination portal for students and institutions.</p>
+                    <p class="mb-0 small text-muted">&copy; 2026 NovaExam. All rights reserved.</p>
+                </div>
+
+                <div class="col-md-4 text-center">
+                    <h6 class="text-uppercase text-muted mb-2">Quick Links</h6>
+                    <div class="d-flex flex-wrap justify-content-center gap-2 small">
+                        <a href="{% url 'landing' %}" class="text-decoration-none text-muted">Home</a>
+                        {% if user.is_authenticated %}
+                            <span class="text-muted">·</span>
+                            <a href="{% url 'student:dashboard' %}" class="text-decoration-none text-muted">Student Dashboard</a>
+                            {% if user.is_staff %}
+                                <span class="text-muted">·</span>
+                                <a href="{% url 'admin-panel:dashboard' %}" class="text-decoration-none text-muted">Admin Panel</a>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">·</span>
+                            <a href="{% url 'accounts:login' %}" class="text-decoration-none text-muted">Login</a>
+                            <span class="text-muted">·</span>
+                            <a href="{% url 'accounts:register' %}" class="text-decoration-none text-muted">Register</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-4 text-center text-md-end">
+                    <h6 class="text-uppercase text-muted mb-2">Support</h6>
+                    <p class="mb-1 small text-muted">Need help with NovaExam?</p>
+                    <a href="mailto:support@novaexam.com" class="small text-decoration-none text-muted">
+                        <i class="bi bi-envelope"></i> support@novaexam.com
+                    </a>
+                </div>
+            </div>
         </div>
     </footer>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Simple NovaExam help chatbot -->
+    <button type="button" class="btn btn-primary nova-chat-toggle" id="novaChatToggle">
+        <i class="bi bi-chat-dots"></i>
+    </button>
+
+    <div class="nova-chat-window" id="novaChatWindow">
+        <div class="card exam-card mb-0">
+            <div class="card-header d-flex justify-content-between align-items-center py-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-info text-dark">NovaBot</span>
+                    <small class="text-muted">Exam helper</small>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="novaChatClose">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="card-body nova-chat-body small" id="novaChatMessages">
+                <div class="nova-chat-message bot">
+                    <span class="p-2 rounded-3">Hi! I can help with common NovaExam questions like starting exams, bulk uploads, and results.</span>
+                </div>
+            </div>
+            <div class="card-footer p-2">
+                <div class="d-flex flex-wrap gap-1 mb-1">
+                    <button class="btn btn-sm btn-soft-primary" data-nova-question="How do I start an exam?">Start exam</button>
+                    <button class="btn btn-sm btn-soft-primary" data-nova-question="How do I bulk upload questions?">Bulk upload</button>
+                    <button class="btn btn-sm btn-soft-primary" data-nova-question="Where can I see my results?">Results</button>
+                </div>
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control" id="novaChatInput" placeholder="Ask something about NovaExam...">
+                    <button class="btn btn-primary" id="novaChatSend"><i class="bi bi-arrow-up"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        const toggle = document.getElementById('novaChatToggle');
+        const windowEl = document.getElementById('novaChatWindow');
+        const closeBtn = document.getElementById('novaChatClose');
+        const input = document.getElementById('novaChatInput');
+        const sendBtn = document.getElementById('novaChatSend');
+        const messagesEl = document.getElementById('novaChatMessages');
+
+        if (!toggle || !windowEl || !closeBtn || !input || !sendBtn || !messagesEl) return;
+
+        const BOT_ANSWERS = [
+            {
+                keywords: ['start exam', 'begin exam', 'take exam'],
+                answer: 'To start an exam, go to the Student Dashboard, pick an Available exam, review the details page, then click Start / Begin Exam. The timer starts when you confirm.'
+            },
+            {
+                keywords: ['bulk upload', 'csv', 'questions'],
+                answer: 'Admins can bulk upload MCQ questions from CSV via Admin Panel → Manage Exams → Questions → Bulk Upload. The CSV needs columns: question, option1–option4, correct, and optional marks, explanation, time_limit_seconds.'
+            },
+            {
+                keywords: ['result', 'score', 'marks'],
+                answer: 'Students can see results on the Result page right after submission, or later from the Student Dashboard and Profile → Exam History.'
+            },
+            {
+                keywords: ['timer', 'time limit'],
+                answer: 'NovaExam enforces a global exam timer and can also use per-question time limits. When time is up, the exam auto-submits so answers are still graded.'
+            }
+        ];
+
+        function appendMessage(text, isUser) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'nova-chat-message ' + (isUser ? 'user' : 'bot');
+            const span = document.createElement('span');
+            span.className = 'p-2 rounded-3';
+            span.textContent = text;
+            wrapper.appendChild(span);
+            messagesEl.appendChild(wrapper);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function getBotAnswer(question) {
+            const q = question.toLowerCase();
+            for (const entry of BOT_ANSWERS) {
+                if (entry.keywords.some(k => q.includes(k))) {
+                    return entry.answer;
+                }
+            }
+            return 'I am a small built-in helper. Try asking about starting exams, bulk uploading questions, results, or the timer.';
+        }
+
+        function handleSend() {
+            const text = input.value.trim();
+            if (!text) return;
+            appendMessage(text, true);
+            input.value = '';
+            setTimeout(() => {
+                appendMessage(getBotAnswer(text), false);
+            }, 200);
+        }
+
+        toggle.addEventListener('click', () => {
+            windowEl.classList.toggle('open');
+        });
+
+        closeBtn.addEventListener('click', () => {
+            windowEl.classList.remove('open');
+        });
+
+        sendBtn.addEventListener('click', handleSend);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSend();
+            }
+        });
+
+        document.querySelectorAll('[data-nova-question]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const q = btn.getAttribute('data-nova-question') || '';
+                input.value = '';
+                appendMessage(q, true);
+                appendMessage(getBotAnswer(q), false);
+            });
+        });
+    })();
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
