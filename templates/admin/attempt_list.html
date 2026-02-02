@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}Attempts for {{ exam.title }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Exam Attempts</h2>
+            <p class="text-muted">{{ exam.title }}</p>
+        </div>
+        <a href="{% url 'admin-panel:exam_list' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Back to Exams
+        </a>
+    </div>
+    
+    {% if attempts %}
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Started</th>
+                                <th>Submitted</th>
+                                <th>Status</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                                <th>Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in attempts %}
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-person"></i>
+                                        {{ attempt.student.get_full_name|default:attempt.student.username }}
+                                        <br>
+                                        <small class="text-muted">{{ attempt.student.username }}</small>
+                                    </td>
+                                    <td>{{ attempt.start_time|date:"M j, Y g:i A" }}</td>
+                                    <td>
+                                        {% if attempt.end_time %}
+                                            {{ attempt.end_time|date:"M j, Y g:i A" }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attempt.is_submitted %}
+                                            <span class="badge bg-success">Submitted</span>
+                                        {% elif attempt.is_expired %}
+                                            <span class="badge bg-danger">Expired</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">In Progress</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attempt.is_submitted %}
+                                            <strong>{{ attempt.score }}</strong> / {{ exam.total_marks }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attempt.is_submitted and exam.total_marks > 0 %}
+                                            {% widthratio attempt.score exam.total_marks 100 %}%
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attempt.is_submitted and exam.total_marks > 0 %}
+                                            {% widthratio attempt.score exam.total_marks 100 as percentage %}
+                                            {% if percentage >= 60 %}
+                                                <span class="badge bg-success">Pass</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Fail</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Summary Statistics -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4>{{ attempts.count }}</h4>
+                        <p class="text-muted">Total Attempts</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4>{{ attempts|length|floatformat:0 }}</h4>
+                        <p class="text-muted">Completed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        {% with submitted_attempts=attempts|length %}
+                            {% with passed_count=0 %}
+                                {% for attempt in attempts %}
+                                    {% if attempt.is_submitted %}
+                                        {% widthratio attempt.score exam.total_marks 100 as percentage %}
+                                        {% if percentage >= 60 %}
+                                            <!-- This is a bit complex without proper template logic -->
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endwith %}
+                        {% endwith %}
+                        <h4>-</h4>
+                        <p class="text-muted">Pass Rate</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4>-</h4>
+                        <p class="text-muted">Avg Score</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-clipboard-x display-1 text-muted"></i>
+            <h3 class="text-muted mt-3">No Attempts Yet</h3>
+            <p class="text-muted">Students haven't started this exam yet.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

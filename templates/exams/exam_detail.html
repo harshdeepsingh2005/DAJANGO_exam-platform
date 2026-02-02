@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ exam.title }} - Exam Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="bi bi-journal-text"></i> {{ exam.title }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Description</h5>
+                        <p class="text-muted">{{ exam.description|linebreaksbr }}</p>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="bi bi-clock text-primary me-2"></i>
+                                <div>
+                                    <strong>Duration:</strong><br>
+                                    <span class="text-muted">{{ exam.duration_minutes }} minutes</span>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="bi bi-question-circle text-primary me-2"></i>
+                                <div>
+                                    <strong>Questions:</strong><br>
+                                    <span class="text-muted">{{ exam.total_questions }} MCQ questions</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="bi bi-calendar-event text-primary me-2"></i>
+                                <div>
+                                    <strong>Available From:</strong><br>
+                                    <span class="text-muted">{{ exam.start_time|date:"M j, Y g:i A" }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="bi bi-calendar-x text-primary me-2"></i>
+                                <div>
+                                    <strong>Available Until:</strong><br>
+                                    <span class="text-muted">{{ exam.end_time|date:"M j, Y g:i A" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> Important Instructions:</h6>
+                        <ul class="mb-0">
+                            <li>You will have {{ exam.duration_minutes }} minutes to complete this exam</li>
+                            <li>The timer will start automatically when you begin</li>
+                            <li>Your answers are saved automatically</li>
+                            <li>You can navigate between questions freely</li>
+                            <li>The exam will be auto-submitted when time expires</li>
+                            <li>Once submitted, you cannot make changes</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="text-center">
+                        <a href="{% url 'student:dashboard' %}" class="btn btn-secondary me-3">
+                            <i class="bi bi-arrow-left"></i> Back to Dashboard
+                        </a>
+                        
+                        <a href="{% url 'student:start_exam' exam.id %}" class="btn btn-success btn-lg">
+                            <i class="bi bi-play-fill"></i> Start Exam
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

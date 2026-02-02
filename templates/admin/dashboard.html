@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Exam Platform{% endblock %}
+
+{% block content %}
+<div class="exam-header text-center mb-4">
+    <div class="container">
+        <h1><i class="bi bi-speedometer2"></i> Admin Dashboard</h1>
+        <p class="lead mb-0">Manage your online examination platform</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-people display-4 text-primary"></i>
+                    <h3 class="mt-2">{{ total_students }}</h3>
+                    <p class="text-muted">Total Students</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-journal-text display-4 text-success"></i>
+                    <h3 class="mt-2">{{ total_exams }}</h3>
+                    <p class="text-muted">Total Exams</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-clipboard-check display-4 text-warning"></i>
+                    <h3 class="mt-2">{{ total_attempts }}</h3>
+                    <p class="text-muted">Total Attempts</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'admin-panel:exam_create' %}" class="btn btn-success w-100">
+                                <i class="bi bi-plus-circle"></i><br>
+                                Create New Exam
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'admin-panel:exam_list' %}" class="btn btn-primary w-100">
+                                <i class="bi bi-list"></i><br>
+                                Manage Exams
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="/admin/" class="btn btn-info w-100">
+                                <i class="bi bi-gear"></i><br>
+                                Django Admin
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'student:dashboard' %}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-eye"></i><br>
+                                Student View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Attempts -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Exam Attempts</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_attempts %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Exam</th>
+                                        <th>Status</th>
+                                        <th>Score</th>
+                                        <th>Submitted</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for attempt in recent_attempts %}
+                                        <tr>
+                                            <td>
+                                                <i class="bi bi-person"></i>
+                                                {{ attempt.student.get_full_name|default:attempt.student.username }}
+                                            </td>
+                                            <td>{{ attempt.exam.title }}</td>
+                                            <td>
+                                                {% if attempt.is_submitted %}
+                                                    <span class="badge bg-success">Submitted</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">In Progress</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if attempt.is_submitted %}
+                                                    <strong>{{ attempt.score }}</strong>/{{ attempt.exam.total_marks }}
+                                                    <small class="text-muted">
+                                                        ({% widthratio attempt.score attempt.exam.total_marks 100 %}%)
+                                                    </small>
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if attempt.end_time %}
+                                                    {{ attempt.end_time|date:"M j, g:i A" }}
+                                                {% else %}
+                                                    <span class="text-muted">In progress</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'admin-panel:attempt_list' attempt.exam.id %}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    View Details
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-inbox display-1 text-muted"></i>
+                            <h5 class="text-muted mt-3">No attempts yet</h5>
+                            <p class="text-muted">Student attempts will appear here once they start taking exams.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

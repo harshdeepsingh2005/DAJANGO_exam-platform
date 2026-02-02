@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load exam_filters %}
+
+{% block title %}Exam Results - {{ attempt.exam.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Results Header -->
+            <div class="card mb-4">
+                <div class="card-header {% if passed %}bg-success{% else %}bg-danger{% endif %} text-white text-center">
+                    <h3 class="mb-0">
+                        <i class="bi bi-{% if passed %}check-circle{% else %}x-circle{% endif %}"></i>
+                        {% if passed %}Congratulations!{% else %}Better luck next time!{% endif %}
+                    </h3>
+                </div>
+                <div class="card-body text-center">
+                    <h4>{{ attempt.exam.title }}</h4>
+                    <p class="text-muted">Exam completed on {{ attempt.end_time|date:"M j, Y g:i A" }}</p>
+                    
+                    {% if passed %}
+                        <div class="alert alert-success">
+                            <h5><i class="bi bi-trophy"></i> You have passed the exam!</h5>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <h5><i class="bi bi-exclamation-triangle"></i> You did not meet the passing criteria.</h5>
+                            <p class="mb-0">Minimum required: 60% | Your score: {{ percentage }}%</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Score Summary -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="bi bi-check-circle display-4 text-success"></i>
+                            <h3 class="mt-2 text-success">{{ correct_answers }}</h3>
+                            <small class="text-muted">Correct Answers</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="bi bi-x-circle display-4 text-danger"></i>
+                            <h3 class="mt-2 text-danger">{{ total_questions|sub:correct_answers }}</h3>
+                            <small class="text-muted">Incorrect Answers</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="bi bi-star display-4 text-primary"></i>
+                            <h3 class="mt-2 text-primary">{{ attempt.score }}</h3>
+                            <small class="text-muted">Score / {{ total_marks }}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="bi bi-percent display-4 {% if passed %}text-success{% else %}text-warning{% endif %}"></i>
+                            <h3 class="mt-2 {% if passed %}text-success{% else %}text-warning{% endif %}">{{ percentage }}%</h3>
+                            <small class="text-muted">Percentage</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Detailed Statistics -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Performance Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Exam:</strong></td>
+                                    <td>{{ attempt.exam.title }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Duration:</strong></td>
+                                    <td>{{ attempt.exam.duration_minutes }} minutes</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Started:</strong></td>
+                                    <td>{{ attempt.start_time|date:"M j, Y g:i A" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Submitted:</strong></td>
+                                    <td>{{ attempt.end_time|date:"M j, Y g:i A" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Total Questions:</strong></td>
+                                    <td>{{ total_questions }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Correct Answers:</strong></td>
+                                    <td class="text-success">{{ correct_answers }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Score:</strong></td>
+                                    <td class="text-primary">{{ attempt.score }} / {{ total_marks }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Grade:</strong></td>
+                                    <td>
+                                        <span class="badge {% if passed %}bg-success{% else %}bg-danger{% endif %}">
+                                            {% if passed %}Pass{% else %}Fail{% endif %} ({{ percentage }}%)
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h6>Score Distribution</h6>
+                    <div class="progress" style="height: 30px;">
+                        <div class="progress-bar bg-success" 
+                             style="width: {{ percentage|floatformat:2 }}%"
+                             role="progressbar" 
+                             aria-valuenow="{{ percentage|floatformat:'2' }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ percentage|floatformat:2 }}%
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <small class="text-muted">0%</small>
+                        <small class="text-muted">Passing: 60%</small>
+                        <small class="text-muted">100%</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="text-center">
+                <a href="{% url 'student:dashboard' %}" class="btn btn-primary">
+                    <i class="bi bi-house"></i> Back to Dashboard
+                </a>
+                
+                <button onclick="window.print()" class="btn btn-outline-primary">
+                    <i class="bi bi-printer"></i> Print Results
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .btn, .navbar, footer {
+            display: none !important;
+        }
+        .card {
+            border: 1px solid #ccc !important;
+            box-shadow: none !important;
+        }
+    }
+</style>
+{% endblock %}

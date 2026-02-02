@@ -1,0 +1,11 @@
+# Dummy Users for Exam Platform
+
+## Admin Users
+- Username: admin1 | Password: adminpass1
+- Username: admin2 | Password: adminpass2
+- Username: admin3 | Password: adminpass3
+
+## Normal Users
+- Username: user1 | Password: userpass1
+- Username: user2 | Password: userpass2
+- Username: user3 | Password: userpass3

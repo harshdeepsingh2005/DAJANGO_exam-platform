@@ -1,0 +1,269 @@
+/* Custom styles for Exam Platform */
+
+:root {
+    --primary-blue: #007BFF;
+    --success-green: #28a745;
+    --danger-red: #dc3545;
+    --warning-amber: #ffc107;
+    --light-bg: #f8f9fa;
+    --dark-text: #343a40;
+}
+
+/* Base typography and layout */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--light-bg);
+    color: var(--dark-text);
+}
+
+/* Card styling */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+/* Exam specific styling */
+.exam-header-bar {
+    background: linear-gradient(135deg, var(--primary-blue), #0056b3);
+    color: white;
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.timer-display {
+    font-size: 1.25rem;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+}
+
+.timer-warning {
+    background-color: var(--warning-amber);
+    color: #212529;
+}
+
+.timer-danger {
+    background-color: var(--danger-red);
+    color: white;
+}
+
+/* Question navigation */
+.question-nav {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.question-num-btn {
+    width: 40px;
+    height: 40px;
+    margin: 2px;
+    font-size: 14px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.question-num-btn.answered {
+    background-color: var(--success-green);
+    border-color: var(--success-green);
+    color: white;
+}
+
+.question-num-btn.current {
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Choice styling */
+.choice-option {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.choice-option:hover {
+    border-color: var(--primary-blue);
+    background-color: #f8f9ff;
+    transform: translateY(-1px);
+}
+
+.choice-option.selected {
+    border-color: var(--primary-blue);
+    background-color: #e7f3ff;
+    box-shadow: 0 2px 8px rgba(0,123,255,0.2);
+}
+
+.choice-radio {
+    margin-right: 0.75rem;
+    transform: scale(1.2);
+}
+
+/* Progress indicators */
+.progress {
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+/* Button improvements */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn-primary {
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
+}
+
+/* Form improvements */
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+/* Alert improvements */
+.alert {
+    border: none;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .exam-header-bar .container-fluid {
+        padding: 0.5rem 1rem;
+    }
+    
+    .timer-display {
+        font-size: 1rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .question-num-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 12px;
+        margin: 1px;
+    }
+    
+    .choice-option {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .container-fluid {
+        padding: 0.5rem;
+    }
+    
+    .exam-header-bar .row {
+        text-align: center;
+    }
+    
+    .exam-header-bar .col-md-4 {
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Print styles for results */
+@media print {
+    .btn, .navbar, footer, .no-print {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+    
+    body {
+        background: white !important;
+    }
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin-top: -10px;
+    margin-left: -10px;
+    border: 2px solid #ccc;
+    border-top: 2px solid var(--primary-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Status badges */
+.status-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+/* Gradient backgrounds */
+.exam-header {
+    background: linear-gradient(135deg, var(--primary-blue), #0056b3);
+    color: white;
+    padding: 2rem 0;
+}
+
+/* Hover effects for cards */
+.exam-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.exam-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}

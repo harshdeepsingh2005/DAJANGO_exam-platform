@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Start {{ exam.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Ready to Start?</h3>
+                </div>
+                <div class="card-body text-center">
+                    <h4>{{ exam.title }}</h4>
+                    
+                    <div class="alert alert-warning">
+                        <h5><i class="bi bi-clock"></i> Final Confirmation</h5>
+                        <p class="mb-0">
+                            Once you click "Begin Exam", the timer will start and you'll have 
+                            <strong>{{ exam.duration_minutes }} minutes</strong> to complete all questions.
+                        </p>
+                    </div>
+                    
+                    <div class="row text-center mb-4">
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <i class="bi bi-question-circle display-4 text-primary"></i>
+                                <h5 class="mt-2">{{ exam.total_questions }}</h5>
+                                <small class="text-muted">Questions</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <i class="bi bi-clock display-4 text-primary"></i>
+                                <h5 class="mt-2">{{ exam.duration_minutes }}</h5>
+                                <small class="text-muted">Minutes</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <i class="bi bi-star display-4 text-primary"></i>
+                                <h5 class="mt-2">{{ exam.total_marks }}</h5>
+                                <small class="text-muted">Total Marks</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'student:exam_detail' exam.id %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Go Back
+                        </a>
+                        
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success btn-lg" onclick="return confirm('Are you ready to start the exam? The timer will begin immediately.')">
+                                <i class="bi bi-play-fill"></i> Begin Exam
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

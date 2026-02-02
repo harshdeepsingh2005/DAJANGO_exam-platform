@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Exams - Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-journal-text"></i> Manage Exams</h2>
+        <a href="{% url 'admin-panel:exam_create' %}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Create New Exam
+        </a>
+    </div>
+    
+    {% if exams %}
+        <div class="row">
+            {% for exam in exams %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">{{ exam.title }}</h6>
+                            {% if exam.is_published %}
+                                <span class="badge bg-success">Published</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Draft</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text small">{{ exam.description|truncatewords:15 }}</p>
+                            
+                            <div class="small text-muted mb-3">
+                                <div><i class="bi bi-clock"></i> {{ exam.duration_minutes }} minutes</div>
+                                <div><i class="bi bi-question-circle"></i> {{ exam.total_questions }} questions</div>
+                                <div><i class="bi bi-calendar"></i> {{ exam.start_time|date:"M j, Y" }}</div>
+                            </div>
+                            
+                            <div class="btn-group-vertical w-100">
+                                <a href="{% url 'admin-panel:question_list' exam.id %}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-list"></i> Manage Questions ({{ exam.total_questions }})
+                                </a>
+                                
+                                <a href="{% url 'admin-panel:attempt_list' exam.id %}" class="btn btn-info btn-sm">
+                                    <i class="bi bi-people"></i> View Attempts ({{ exam.attempts.count }})
+                                </a>
+                                
+                                <div class="btn-group">
+                                    <a href="{% url 'admin-panel:exam_edit' exam.id %}" class="btn btn-warning btn-sm">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                    
+                                    <a href="{% url 'admin-panel:toggle_publish' exam.id %}" 
+                                       class="btn btn-{% if exam.is_published %}secondary{% else %}success{% endif %} btn-sm"
+                                       onclick="return confirm('{% if exam.is_published %}Unpublish{% else %}Publish{% endif %} this exam?')">
+                                        <i class="bi bi-{% if exam.is_published %}eye-slash{% else %}eye{% endif %}"></i>
+                                        {% if exam.is_published %}Unpublish{% else %}Publish{% endif %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer small text-muted">
+                            Created: {{ exam.created_at|date:"M j, Y" }}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-journal-x display-1 text-muted"></i>
+            <h3 class="text-muted mt-3">No Exams Created Yet</h3>
+            <p class="text-muted">Create your first exam to get started!</p>
+            <a href="{% url 'admin-panel:exam_create' %}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Create First Exam
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

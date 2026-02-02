@@ -1,0 +1,346 @@
+{% extends 'base.html' %}
+{% load exam_filters %}
+
+{% block title %}Taking {{ exam.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .exam-header-bar {
+        background: linear-gradient(135deg, #007BFF, #0056b3);
+        color: white;
+        padding: 1rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 1020;
+    }
+    
+    .timer-display {
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+    
+    .question-nav {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .question-num-btn {
+        width: 40px;
+        height: 40px;
+        margin: 2px;
+        font-size: 14px;
+    }
+    
+    .question-num-btn.answered {
+        background-color: #28a745;
+        border-color: #28a745;
+        color: white;
+    }
+    
+    .question-num-btn.current {
+        background-color: #007BFF;
+        border-color: #007BFF;
+        color: white;
+    }
+    
+    .choice-option {
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .choice-option:hover {
+        border-color: #007BFF;
+        background-color: #f8f9ff;
+    }
+    
+    .choice-option.selected {
+        border-color: #007BFF;
+        background-color: #e7f3ff;
+    }
+    
+    .choice-radio {
+        margin-right: 0.75rem;
+        transform: scale(1.2);
+    }
+    
+    @media (max-width: 768px) {
+        .timer-display {
+            font-size: 1rem;
+        }
+        
+        .question-num-btn {
+            width: 35px;
+            height: 35px;
+            font-size: 12px;
+        }
+        
+        .choice-option {
+            padding: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Exam Header Bar -->
+<div class="exam-header-bar">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <h5 class="mb-0">{{ exam.title }}</h5>
+                <small>Question {{ current_index|add:1 }} of {{ total_questions }}</small>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="timer-display" id="timer">
+                    <i class="bi bi-clock"></i> <span id="time-remaining">Loading...</span>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <button type="button" class="btn btn-danger" onclick="submitExam()">
+                    <i class="bi bi-check-square"></i> Finish Exam
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Question Content -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Question {{ current_index|add:1 }}</h5>
+                    <small class="text-muted">Marks: {{ current_question.marks }}</small>
+                </div>
+                <div class="card-body">
+                    <div class="question-text mb-4">
+                        <p class="h6">{{ current_question.text|linebreaksbr }}</p>
+                    </div>
+                    
+                    <form id="answer-form">
+                        {% csrf_token %}
+                        <div class="choices">
+                            {% for choice in current_question.choices.all %}
+                                <div class="choice-option {% if answers|lookup:current_question.id == choice.id %}selected{% endif %}"
+                                     data-choice-id="{{ choice.id|add:'0' }}" onclick="selectChoiceFromAttr(this)">
+                                    <label class="w-100 cursor-pointer">
+                                        <input type="radio" 
+                                               name="question_{{ current_question.id }}" 
+                                               value="{{ choice.id|add:'0' }}"
+                                               class="choice-radio"
+                                               {% if answers|lookup:current_question.id == choice.id %}checked{% endif %}
+                                               onchange="selectChoiceFromAttr(this.closest('.choice-option'))">
+                                        {{ choice.text }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Navigation -->
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {% if current_index > 0 %}
+                                <a href="?q={{ current_index }}" class="btn btn-outline-primary">
+                                    <i class="bi bi-arrow-left"></i> Previous
+                                </a>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if current_index|add:1 < total_questions %}
+                                <a href="?q={{ current_index|add:2 }}" class="btn btn-primary">
+                                    Next <i class="bi bi-arrow-right"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Question Navigator</h6>
+                </div>
+                <div class="card-body question-nav">
+                    {% for question in exam.questions.all %}
+                        <a href="?q={{ forloop.counter }}" 
+                           class="btn btn-outline-secondary question-num-btn 
+                                  {% if answers|lookup:question.id %}answered{% endif %}
+                                  {% if question.id == current_question.id %}current{% endif %}">
+                            {{ forloop.counter }}
+                        </a>
+                    {% endfor %}
+                </div>
+                <div class="card-footer">
+                    <div class="small">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="btn btn-outline-secondary question-num-btn me-2" style="width: 25px; height: 25px; font-size: 10px;">1</div>
+                            <span>Not Answered</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="btn question-num-btn answered me-2" style="width: 25px; height: 25px; font-size: 10px;">2</div>
+                            <span>Answered</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="btn question-num-btn current me-2" style="width: 25px; height: 25px; font-size: 10px;">3</div>
+                            <span>Current</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Progress Card -->
+            <div class="card mt-3">
+                <div class="card-body text-center">
+                    <h6>Progress</h6>
+                    <div class="progress mb-2">
+                        <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <small id="progress-text">0 of {{ total_questions }} answered</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for final submission -->
+<form id="final-submit-form" method="post" action="{% url 'student:submit_exam' exam.id %}" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="submit_exam" value="1">
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script id="answers-data" type="application/json">{{ answers|json_script:"answers-data" }}</script>
+<script>
+    let timeRemaining = parseInt("{{ time_remaining|add:'0' }}");
+    let timerInterval;
+    // CSRF token for AJAX requests
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    // Parse answers dict from JSON
+    const answers = JSON.parse(document.getElementById('answers-data').textContent);
+
+    function updateTimer() {
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            document.getElementById('time-remaining').textContent = 'Time Up!';
+            document.getElementById('timer').className = 'timer-display timer-danger';
+            autoSubmitExam();
+            return;
+        }
+        const hours = Math.floor(timeRemaining / 3600);
+        const minutes = Math.floor((timeRemaining % 3600) / 60);
+        const seconds = timeRemaining % 60;
+        let timeString = '';
+        if (hours > 0) {
+            timeString = `${hours.toString().padStart(2, '0')}:`;
+        }
+        timeString += `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        document.getElementById('time-remaining').textContent = timeString;
+        if (timeRemaining <= 300) {
+            document.getElementById('timer').className = 'timer-display timer-danger';
+        } else if (timeRemaining <= 600) {
+            document.getElementById('timer').className = 'timer-display timer-warning';
+        }
+        timeRemaining--;
+    }
+    function startTimer() {
+        updateTimer();
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+    function selectChoice(choiceId) {
+        // Update UI
+        const choiceOptions = document.querySelectorAll('.choice-option');
+        choiceOptions.forEach(option => {
+            option.classList.remove('selected');
+        });
+        const radioButtons = document.querySelectorAll('input[type="radio"]');
+        radioButtons.forEach(radio => {
+            if (radio.value == choiceId) {
+                radio.checked = true;
+                radio.closest('.choice-option').classList.add('selected');
+            } else {
+                radio.checked = false;
+            }
+        });
+        // Save answer via AJAX
+        saveAnswer(parseInt("{{ current_question.id|add:'0' }}"), choiceId);
+        // Update progress
+        updateProgress();
+    }
+    function saveAnswer(questionId, choiceId) {
+        fetch("{% url 'student:submit_exam' exam.id %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                question_id: questionId,
+                choice_id: choiceId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Mark question as answered in navigator
+                const navButton = document.querySelector(`a[href*="q=${getCurrentQuestionNumber()}"]`);
+                if (navButton && !navButton.classList.contains('current')) {
+                    navButton.classList.add('answered');
+                }
+            } else {
+                console.error('Failed to save answer:', data.error);
+                if (data.error === 'Exam time expired') {
+                    alert('Time is up! The exam will be submitted automatically.');
+                    autoSubmitExam();
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error saving answer:', error);
+        });
+    }
+    function getCurrentQuestionNumber() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return parseInt(urlParams.get('q')) || 1;
+    }
+    function updateProgress() {
+        const answeredButtons = document.querySelectorAll('.question-num-btn.answered').length;
+        const currentIsAnswered = document.querySelector('input[type="radio"]:checked') ? 1 : 0;
+        const totalAnswered = answeredButtons + currentIsAnswered;
+        const totalQuestions = parseInt("{{ total_questions|add:'0' }}");
+        const percentage = (totalAnswered / totalQuestions) * 100;
+        document.getElementById('progress-bar').style.width = percentage + '%';
+        document.getElementById('progress-text').textContent = `${totalAnswered} of ${totalQuestions} answered`;
+    }
+    function submitExam() {
+        if (confirm('Are you sure you want to submit the exam? You cannot make changes after submission.')) {
+            document.getElementById('final-submit-form').submit();
+        }
+    }
+    function autoSubmitExam() {
+        alert('Time is up! Your exam will be submitted automatically.');
+        document.getElementById('final-submit-form').submit();
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        startTimer();
+        updateProgress();
+        window.addEventListener('beforeunload', function(e) {
+            if (timeRemaining > 0) {
+                e.preventDefault();
+                e.returnValue = 'Your exam is in progress. Are you sure you want to leave?';
+            }
+        });
+    });
+</script>
+{% endblock %}
